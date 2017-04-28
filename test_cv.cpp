@@ -5,14 +5,12 @@
 #include <chrono>
  
 RWLock lock;
-std::mutex mt;
 struct Counter {
     int value;
 
     Counter() : value(0){}
 
     void increment(){
-    	//std::unique_lock<std::mutex> lock(mt);
         lock.wrlock();
         ++value;
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -21,7 +19,6 @@ struct Counter {
 
     int get_value()
     {
-    	//std::unique_lock<std::mutex> lock(mt);
         lock.rdlock();
     	int val = value;
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -31,6 +28,7 @@ struct Counter {
 };
 
 int main(){
+    std::vector<double> output;
     for(int a = 0; a < 10 ; a++)
     {
     	auto start = std::chrono::steady_clock::now();
@@ -54,9 +52,18 @@ int main(){
         std::cout << counter.get_value() << std::endl;
         auto end = std::chrono::steady_clock::now();
         auto diff = end - start;
-        std::cout << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
+        double d = std::chrono::duration <double, std::milli> (diff).count();
+        std::cout << d << " ms" << std::endl;
+        output.push_back(d);
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+    double total;
+    for(auto a: output)
+    {
+        total += a;
+    }
+    std::cout << "*************** test_cv ********************" << std::endl;
+    std::cout << "Average time for " << output.size() << " test cases are : " << total/output.size() << std::endl;
     return 0;
 }
 
